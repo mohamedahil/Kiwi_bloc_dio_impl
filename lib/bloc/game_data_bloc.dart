@@ -8,21 +8,22 @@ class GameDataBloc extends Bloc<GameDataEvent, GameDataState> {
 
   GameDataBloc(this._gamesRepo) : super(const GameDataState.initial()) {
     on<GameDataEvent>(
-      (event, emit) => event.map(
-        load: (context) => _onLoadGames(emit),
-      ),
+      (event, emit) => event.map(load: (context) => _onLoadGames(emit)),
     );
   }
 
   Future<void> _onLoadGames(Emitter<GameDataState> emit) async {
     emit(const GameDataState.loading());
-    final result = await _gamesRepo.getGamesData();
 
-    if (result != null) {
-      emit(GameDataState.loaded(result));
-    } 
-    else {
-      emit(const GameDataState.error('Could not fetch data'));
+    try {
+      final result = await _gamesRepo.getGamesData();
+      if (result == null) {
+        emit(const GameDataState.error('No games found'));
+      } else {
+        emit(GameDataState.loaded(result));
+      }
+    } catch (e) {
+      emit(GameDataState.error(e.toString()));
     }
   }
 }
