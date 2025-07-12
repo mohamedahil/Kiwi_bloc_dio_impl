@@ -1,33 +1,31 @@
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
+import 'package:kiwi_bloc_impl/isolate/iso_functions.dart';
 import '../models/data_model.dart';
 
 class ApiService {
-
-  final Dio _dio = Dio(BaseOptions(
-    baseUrl: 'https://jsonplaceholder.typicode.com',
-    connectTimeout: const Duration(seconds: 5),
-    receiveTimeout: const Duration(seconds: 5),
-    responseType: ResponseType.json,
-  ));
+  final Dio _dio = Dio(
+    BaseOptions(
+      baseUrl: 'https://jsonplaceholder.typicode.com',
+      connectTimeout: const Duration(seconds: 5),
+      receiveTimeout: const Duration(seconds: 5),
+      responseType: ResponseType.json,
+    ),
+  );
 
   Future<List<DataModel>> fetchGames() async {
     try {
       final response = await _dio.get('/posts');
-      final data = response.data as List<dynamic>;
-      return data
-          .map((e) => DataModel.fromJson(e as Map<String, dynamic>))
-          .toList();
-    }
-
-     on DioException catch (e) {
+      final jsonString = jsonEncode(response.data);
+      //debugPrint(jsonString);
+      return compute(dataIsolate, jsonString);
+    } on DioException catch (e) {
       final status = e.response?.statusCode;
       final statusMessage = e.response?.statusMessage;
-      throw Exception(
-        'Failed to load games (code: $status - $statusMessage)',
-      );
-    } 
-    
-    catch (e) {
+      throw Exception('Failed to load games (code: $status - $statusMessage)');
+    } catch (e) {
       throw Exception('Unexpected error: $e');
     }
   }

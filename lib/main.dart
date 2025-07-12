@@ -5,6 +5,8 @@ import 'package:kiwi_bloc_impl/di/kiwi_container.dart';
 import 'bloc/game_data_bloc.dart';
 import 'bloc/game_data_event.dart';
 import 'bloc/game_data_state.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
+
 
 void main() {
   Injector.setup();
@@ -34,37 +36,94 @@ class GameListPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
-      appBar: AppBar(title: const Text('Games')),
+      backgroundColor: Colors.grey.shade100,
+      appBar: AppBar(
+        title: const Text('Game List'),
+        backgroundColor: const Color.fromARGB(255, 190, 52, 228),
+        elevation: 2,
+        centerTitle: true,
+      ),
       body: Column(
         children: [
+          const SizedBox(height: 16),
           Center(
-            child: ElevatedButton(
+            child: ElevatedButton.icon(
               onPressed: () => context.read<GameDataBloc>().add(const GameDataEvent.load()),
-              child: const Text('Load Games'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color.fromARGB(255, 161, 155, 171),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              icon: const Icon(Icons.refresh),
+              label: const Text('Load Games', style: TextStyle(fontSize: 16,color: Colors.black)),
             ),
           ),
+          const SizedBox(height: 16),
           Expanded(
             child: BlocBuilder<GameDataBloc, GameDataState>(
               builder: (context, state) {
-                return state.when(
-                  initial: () {
-                    return const Center(child: Text('Press Load'));
-                  } ,
-                  loading: ()  {
-                    return  const Center(child: CircularProgressIndicator());
-                  },
-                  loaded: (games)  {
-                    return  ListView.builder(
-                    itemCount: games.length,
-                    itemBuilder: (context, index) => ListTile(
-                      title: Text(games[index].title),
-                      subtitle: Text(games[index].body),
+                return AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 100),
+                  child: state.when(
+                    
+                    initial: () => const Center(
+                      key: ValueKey('initial'),
+                      child: Text(
+                        'Tap the button to load games',
+                        style: TextStyle(fontSize: 16),
+                      ),
                     ),
-                  );
-                  },
-                  error: (msg) => Center(child: Text('Error: $msg')),
+                    loading: () => const Center(
+                      key: ValueKey('loading'),
+                      child: SpinKitFadingCube(
+                        color: Colors.deepPurple,
+                        size: 50.0,
+                      ),
+                    ),
+                    loaded: (games) => ListView.builder(
+                      key: const ValueKey('loaded'),
+                      padding: const EdgeInsets.all(12),
+                      itemCount: games.length,
+                      itemBuilder: (context, index) {
+                        final game = games[index];
+                        return Card(
+                          elevation: 3,
+                          margin: const EdgeInsets.symmetric(vertical: 8),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: ListTile(
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                            title: Text(
+                              game.title,
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                            ),
+                            subtitle: Padding(
+                              padding: const EdgeInsets.only(top: 4.0),
+                              child: Text(
+                                game.body,
+                                style: TextStyle(color: Colors.grey.shade700),
+                              ),
+                            ),
+                            leading: CircleAvatar(
+                              backgroundColor: Colors.deepPurple.shade100,
+                              child: Text('${index + 1}'),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                    error: (msg) => Center(
+                      key: const ValueKey('error'),
+                      child: Text(
+                        'Error: $msg',
+                        style: const TextStyle(color: Colors.red, fontSize: 16),
+                      ),
+                    ),
+                  ),
                 );
               },
             ),
