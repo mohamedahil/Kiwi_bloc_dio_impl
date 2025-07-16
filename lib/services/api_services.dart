@@ -31,7 +31,8 @@ class ApiService {
     try {
       final response = await _dio.get('/posts');
       final jsonString = jsonEncode(response.data);
-      //debugPrint(jsonString);
+      //debugPrint(jsonString); 
+      //this is bocz of isolate otherwise json encode is not needed dio auto does that.
       return compute(dataIsolate, jsonString);
     } on DioException catch (e) {
       final status = e.response?.statusCode;
