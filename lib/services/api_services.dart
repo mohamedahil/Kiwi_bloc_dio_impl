@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:kiwi_bloc_impl/isolate/iso_functions.dart';
+import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 import '../models/data_model.dart';
 
 class ApiService {
@@ -13,7 +14,18 @@ class ApiService {
       receiveTimeout: const Duration(seconds: 5),
       responseType: ResponseType.json,
     ),
+    )..interceptors.add(
+    PrettyDioLogger(
+      requestHeader: true,
+      requestBody: true,
+      responseBody: true,
+      responseHeader: false,
+      error: true,
+      compact: true,
+      maxWidth: 90,
+    ),
   );
+  
 
   Future<List<DataModel>> fetchGames() async {
     try {
